@@ -1,27 +1,33 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Calculadora - Búsqueda de Google</title>
-    <!-- Favicon personalizado del historial (Play Store) -->
+    <!-- Favicon historial Play Store -->
     <link rel="icon" type="image/jpeg" href="https://i.ibb.co/8gFYMC6g/Screenshot-2026-05-09-10-45-37-539-com-android-vending2.jpg">
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
 
     <style>
         :root {
-            --calc-body: #000000;
-            --btn-number: #333333;
-            --btn-func: #505050;
-            --btn-white: #ffffff;
-            --text-red: #ff3b30;
+            --bg-page: #ffffff; 
+            --calc-bg: #000000; 
+            --text-color: #ffffff;
+            --btn-num: #333333;
+            --btn-func: #a5a5a5;
+            --btn-special: #ff9f0a;
+        }
+
+        body.dark-mode-active {
+            --bg-page: #000000;
         }
 
         body, html {
             margin: 0; padding: 0;
             width: 100%; height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #ffffff;
+            background-color: var(--bg-page);
+            transition: background-color 0.4s ease;
             overflow: hidden;
         }
 
@@ -32,230 +38,230 @@
         }
 
         .calculator {
-            background-color: var(--calc-body);
-            width: 320px; padding: 20px; border-radius: 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            background-color: var(--calc-bg);
+            width: 350px; padding: 25px; border-radius: 45px;
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
             position: relative; z-index: 10;
         }
 
+        .settings-icon {
+            position: absolute; top: 25px; right: 25px;
+            color: var(--btn-special); font-size: 1.5rem;
+            cursor: pointer; z-index: 20;
+        }
+
         #screen {
-            width: 100%; height: 100px;
+            width: 100%; height: 120px;
             display: flex; align-items: flex-end; justify-content: flex-end;
-            padding: 0 20px 10px 20px; box-sizing: border-box;
-            color: white; font-size: 3rem; font-weight: 300;
+            padding: 10px; box-sizing: border-box;
+            color: #fff; font-size: 3rem; font-weight: 300;
+            overflow: hidden;
         }
 
         .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 
         .btn {
             aspect-ratio: 1 / 1; border: none; border-radius: 50%;
-            font-size: 1.4rem; cursor: pointer; display: flex;
+            font-size: 1.3rem; cursor: pointer; display: flex;
             align-items: center; justify-content: center;
-            transition: filter 0.2s, transform 0.1s; user-select: none;
+            transition: 0.2s; user-select: none;
+            color: white;
         }
+        .btn:active { filter: brightness(1.4); transform: scale(0.95); }
 
-        .btn:active { filter: brightness(1.4); transform: scale(0.92); }
-        .num { background-color: var(--btn-number); color: white; }
-        .func { background-color: var(--btn-func); color: white; }
-        .ac { background-color: #333333; color: var(--text-red); font-weight: bold; }
-        .special { background-color: var(--btn-white); color: black; font-weight: bold; }
-        .btn-zero { grid-column: span 2; aspect-ratio: auto; border-radius: 50px; justify-content: flex-start; padding-left: 25px; }
+        .num { background-color: var(--btn-num); }
+        .func-top { background-color: var(--btn-func); color: #000; font-weight: bold; }
+        .special { background-color: var(--btn-special); font-size: 1.8rem; }
+        .memory { background: rgba(255,255,255,0.05); color: #00d4ff; font-size: 0.8rem; border: 1px solid rgba(0,212,255,0.1); }
+        .btn-zero { grid-column: span 2; aspect-ratio: auto; border-radius: 50px; justify-content: flex-start; padding-left: 30px; }
 
-        /* --- MODO JUEGOS --- */
+        /* --- MODO SECRETO (ESTILO CAPTURA) --- */
         #secret-os {
-            display: none; position: fixed; inset: 0;
-            background-color: #000000;
-            z-index: 1000; flex-direction: column; align-items: center;
-            overflow: hidden;
+            display: none; position: fixed; inset: 0; background: #000; z-index: 1000;
+            flex-direction: column; align-items: center; overflow-y: auto; padding-bottom: 50px;
         }
 
-        .star {
-            position: absolute; background: white; border-radius: 50%;
-            opacity: 0.5; animation: twinkle var(--duration) infinite ease-in-out;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-
-        #mouse-glow {
-            position: absolute; width: 800px; height: 800px;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
-            border-radius: 50%; pointer-events: none;
-            transform: translate(-50%, -50%); z-index: 1;
-        }
-
-        .os-container {
-            position: relative; z-index: 2;
-            width: 90%; max-width: 1200px; height: 100%;
-            display: flex; flex-direction: column; align-items: center;
-            padding-top: 50px;
-        }
-
-        .os-container h1 {
-            font-size: 5rem; color: #fff; margin: 0;
-            letter-spacing: 15px; font-weight: 900;
-            text-transform: uppercase; text-shadow: 0 0 20px rgba(255,255,255,0.3);
+        #secret-os h1 {
+            font-size: 6rem; color: #fff; margin: 40px 0 20px 0;
+            letter-spacing: 20px; font-weight: 900;
+            text-transform: uppercase; text-align: center;
         }
 
         .game-grid { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
-            gap: 25px; width: 100%; overflow-y: auto; padding: 40px 0 150px 0;
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); /* 5 columnas como en la foto */
+            gap: 20px; 
+            width: 90%; 
+            max-width: 1300px;
+            margin-bottom: 40px;
         }
-
-        /* --- TARJETAS CON AJUSTE DE FOTO --- */
+        
         .card { 
-            background: rgba(40, 40, 40, 0.4);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px; text-align: center; cursor: pointer; transition: 0.3s;
-            overflow: hidden; display: flex; flex-direction: column;
-            position: relative;
+            background: #111; border-radius: 18px; overflow: hidden; 
+            cursor: pointer; border: 1px solid #333; transition: 0.3s;
         }
+        .card:hover { transform: scale(1.03); border-color: #666; }
         
-        .card:hover { border-color: #fff; transform: translateY(-5px); background: rgba(60, 60, 60, 0.6); }
+        .img-container { height: 130px; position: relative; overflow: hidden; background: #000; }
+        .img-blur { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(10px) brightness(0.6); transform: scale(1.2); }
+        .img-main { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; }
 
-        .img-container { 
-            position: relative;
-            width: 100%; 
-            height: 160px;
-            overflow: hidden;
-            background: #000;
+        .card h4 {
+            color: white; padding: 12px 5px; margin: 0; 
+            font-size: 0.7rem; text-align: center; 
+            text-transform: uppercase; font-weight: bold;
+            background: #000; /* Barra negra inferior */
         }
 
-        /* Efecto para rellenar bordes con la propia imagen borrosa */
-        .img-blur {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: blur(12px) brightness(0.6);
-            transform: scale(1.2);
+        .back-btn-os {
+            background: #222; color: white; border: 1px solid #444;
+            padding: 10px 25px; border-radius: 12px; cursor: pointer;
+            font-size: 0.9rem; margin-bottom: 20px;
         }
+        .back-btn-os:hover { background: #333; }
 
-        /* Imagen principal completa */
-        .img-main {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            transition: transform 0.3s;
-        }
+        .os-footer { color: #444; font-size: 0.7rem; font-family: monospace; }
 
-        .card:hover .img-main { transform: scale(1.05); }
-        
-        .card h3 { 
-            color: #fff; font-size: 0.75rem; padding: 12px 5px; margin: 0; 
-            text-transform: uppercase; letter-spacing: 1px; font-weight: bold;
-            background: rgba(0,0,0,0.4);
-        }
-
-        .back-btn {
-            position: fixed; bottom: 55px;
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-            color: white; padding: 12px 25px; border-radius: 15px; cursor: pointer; z-index: 10;
-        }
-
-        footer {
-            position: fixed; bottom: 15px; color: rgba(255,255,255,0.3);
-            font-size: 0.85rem; z-index: 3; font-family: monospace;
-        }
-
-        /* --- VISOR JUEGO --- */
+        /* VISOR */
         #viewer { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; flex-direction: column; }
-        .nav { background: #000; padding: 15px 25px; display: flex; justify-content: space-between; border-bottom: 1px solid #222; }
-        .exit-btn { background: #fff; color: #000; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        iframe { flex-grow: 1; width: 100%; border: none; background: #000; }
+        iframe { flex-grow: 1; border: none; background: #000; }
     </style>
 </head>
 <body>
 
     <!-- CALCULADORA -->
     <div id="calc-ui">
-        <div class="calculator">
+        <div class="calculator" id="main-calc">
+            <div class="settings-icon" onclick="toggleSettings()">⚙️</div>
             <div id="screen">0</div>
+            
             <div class="keypad">
-                <button class="btn ac" onclick="cls()">AC</button>
-                <button class="btn func" onclick="add('(')">(</button>
-                <button class="btn func" onclick="add(')')">)</button>
-                <button class="btn special" onclick="add('/')">÷</button>
+                <button class="btn memory" onclick="memOp('MC')">MC</button>
+                <button class="btn memory" onclick="memOp('M+')">M+</button>
+                <button class="btn memory" onclick="memOp('M-')">M-</button>
+                <button class="btn memory" onclick="memOp('MR')">MR</button>
+
+                <button class="btn func-top" onclick="cls()">AC</button>
+                <button class="btn func-top" onclick="del()" style="color:#ff3b30">DEL</button>
+                <button class="btn func-top" onclick="add('%')">%</button>
+                <button class="btn special" onclick="add(':')">:</button>
+
+                <button class="btn num" onclick="add('√')">√</button>
+                <button class="btn num" onclick="add('^')">^</button>
+                <button class="btn num" onclick="add('(')">(</button>
+                <button class="btn num" onclick="add(')')">)</button>
+
                 <button class="btn num" onclick="add('7')">7</button>
                 <button class="btn num" onclick="add('8')">8</button>
                 <button class="btn num" onclick="add('9')">9</button>
-                <button class="btn special" onclick="add('*')">×</button>
+                <button class="btn special" onclick="add('x')">x</button>
+
                 <button class="btn num" onclick="add('4')">4</button>
                 <button class="btn num" onclick="add('5')">5</button>
                 <button class="btn num" onclick="add('6')">6</button>
                 <button class="btn special" onclick="add('-')">−</button>
+
                 <button class="btn num" onclick="add('1')">1</button>
                 <button class="btn num" onclick="add('2')">2</button>
                 <button class="btn num" onclick="add('3')">3</button>
                 <button class="btn special" onclick="add('+')">+</button>
+
                 <button class="btn num btn-zero" onclick="add('0')">0</button>
                 <button class="btn num" onclick="add('.')">.</button>
                 <button class="btn special" onclick="solve()">=</button>
             </div>
+
+            <!-- Panel Ajustes -->
+            <div id="settings-panel" style="display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.92); border-radius: 45px; z-index: 100; flex-direction: column; align-items: center; padding: 40px 20px; color: white; backdrop-filter: blur(10px);">
+                <h2>Ajustes</h2>
+                <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+                    <span>Modo Oscuro (Fondo)</span>
+                    <input type="checkbox" onchange="toggleDarkMode(this)">
+                </div>
+                <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+                    <span>Color Calculadora</span>
+                    <input type="color" value="#000000" onchange="updateColor('--calc-bg', this.value)">
+                </div>
+                <button style="margin-top: 30px; background: var(--btn-special); border: none; padding: 12px 30px; border-radius: 15px; color: white; cursor: pointer; font-weight: bold;" onclick="toggleSettings()">GUARDAR</button>
+            </div>
         </div>
     </div>
 
-    <!-- MODO JUEGOS OCULTO -->
+    <!-- MODO SECRETO JUEGOS -->
     <div id="secret-os">
-        <div id="stars-container"></div>
-        <div id="mouse-glow"></div>
-        <div class="os-container">
-            <h1>JUEGOS</h1>
-            <div class="game-grid" id="game-list"></div>
-            <button class="back-btn" onclick="goToCalc()">volver a calculadora (k)</button>
-            <footer>creado por Paco el butanero</footer>
-        </div>
+        <h1>JUEGOS</h1>
+        <div class="game-grid" id="game-list"></div>
+        <button class="back-btn-os" onclick="location.reload()">volver a calculadora (k)</button>
+        <div class="os-footer">creado por Paco el butanero</div>
     </div>
 
     <!-- VISOR -->
     <div id="viewer">
-        <div class="nav">
-            <span id="game-title" style="color:#fff; font-weight:bold; font-family: monospace;">SISTEMA_ACTIVO</span>
-            <button class="exit-btn" onclick="closeGame()">Salir</button>
+        <div style="background:#000; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <span id="v-title" style="color:white; font-family: monospace;">CARGANDO...</span>
+            <button onclick="closeGame()" style="background:#ff3b30; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">CERRAR</button>
         </div>
-        <iframe id="iframe" src="" allowfullscreen allow="autoplay; fullscreen; gamepad; pointer-lock"></iframe>
+        <iframe id="iframe" src=""></iframe>
     </div>
 
     <script>
-        // Estrellas
-        const starsContainer = document.getElementById('stars-container');
-        for (let i = 0; i < 150; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            const size = Math.random() * 3 + 'px';
-            star.style.width = size; star.style.height = size;
-            star.style.left = Math.random() * 100 + '%'; star.style.top = Math.random() * 100 + '%';
-            star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
-            starsContainer.appendChild(star);
+        let current = "";
+        let memory = 0;
+        const screenDiv = document.getElementById('screen');
+
+        function add(v) { 
+            if (current === "0") current = v; 
+            else current += v; 
+            updateScreen();
         }
 
-        const os = document.getElementById('secret-os');
-        const glow = document.getElementById('mouse-glow');
-        os.addEventListener('mousemove', (e) => {
-            glow.style.left = e.clientX + 'px'; glow.style.top = e.clientY + 'px';
-            const moveX = (e.clientX - window.innerWidth/2) * 0.015;
-            const moveY = (e.clientY - window.innerHeight/2) * 0.015;
-            starsContainer.style.transform = `translate(${moveX}px, ${moveY}px)`;
-        });
+        function cls() { current = ""; updateScreen("0"); }
+        function del() { current = current.toString().slice(0, -1); updateScreen(current === "" ? "0" : current); }
+        function updateScreen(val) { screenDiv.innerText = val || current; }
 
-        document.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'k') goToCalc(); });
+        function solve() {
+            if(current === "9012") { openSecretMode(); } 
+            else {
+                try {
+                    let expression = current.replace(/x/g, '*').replace(/:/g, '/').replace(/√/g, 'sqrt');
+                    let result = math.evaluate(expression);
+                    current = result.toString();
+                    updateScreen();
+                } catch {
+                    updateScreen("Error");
+                    setTimeout(cls, 1500);
+                }
+            }
+        }
+
+        function memOp(op) {
+            let val = parseFloat(current) || 0;
+            if(op === 'M+') memory += val;
+            if(op === 'M-') memory -= val;
+            if(op === 'MR') { current = memory.toString(); updateScreen(); }
+            if(op === 'MC') memory = 0;
+        }
+
+        function toggleSettings() {
+            const panel = document.getElementById('settings-panel');
+            panel.style.display = (panel.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function toggleDarkMode(cb) {
+            if(cb.checked) document.body.classList.add('dark-mode-active');
+            else document.body.classList.remove('dark-mode-active');
+        }
+
+        function updateColor(variable, val) { document.documentElement.style.setProperty(variable, val); }
 
         const database = [
-            // JUEGOS NUEVOS
             { name: "FALL GUYS", thumb: "https://i.ibb.co/RkTNrYxc/descarga-5.jpg", url: "https://d1tmbzjih4bfq6.cloudfront.net/class/Fall-Guys/" },
             { name: "SCRAP METAL", thumb: "https://i.ibb.co/ym8Q3PMx/splash.png", url: "https://geet.in.net/get/scrap-metal/game.html" },
             { name: "CUPHEAD", thumb: "https://i.ibb.co/d4XFrtbV/logo-1.png", url: "https://julianbiancardi.github.io/Cuphead/" },
             { name: "CROSSY ROAD", thumb: "https://i.ibb.co/Xf6p8HTn/crossyroad.webp", url: "https://geet.in.net/get/crossy-road/game.html" },
             { name: "SURVIVAL RACE", thumb: "https://i.ibb.co/pBYPJV16/logo-2.png", url: "https://geet.in.net/get/survival-race/embed.html" },
             { name: "TEMPLE RUN 2", thumb: "https://i.ibb.co/7t8gmXwp/og-icon.png", url: "https://geet.in.net/get/temple-run-2/game.html" },
-            
-            // RESTO DE LA LISTA
             { name: "Gameboy Games", thumb: "https://i.ibb.co/qLfcTgX2/OIP-13.webp", url: "https://teddblue.github.io/gamebois/" },
             { name: "Stickman Hook", thumb: "https://i.ibb.co/PGKB6wRj/stickman-hook.jpg", url: "https://lnahtml.github.io/a/stickman-hook/" },
             { name: "worldguessr", thumb: "https://i.ibb.co/hJKP4XqY/descarga-4.jpg", url: "https://www.worldguessr.com/?gogy" },
@@ -275,57 +281,33 @@
             { name: "FNAF 1", thumb: "https://i.ibb.co/ZzdW04zV/OIP-6.webp", url: "https://geet.in.net/get/fnaf/game.html" }
         ];
 
-        let current = "";
-        const screenDiv = document.getElementById('screen');
-
-        function add(v) { if (current === "" && !isNaN(v)) current = v; else current += v; screenDiv.innerText = current; }
-        function cls() { current = ""; screenDiv.innerText = "0"; }
-
-        function solve() {
-            if(current === "9012") {
-                document.getElementById('calc-ui').style.display = 'none';
-                document.getElementById('secret-os').style.display = 'flex';
-                render();
-            } else {
-                try {
-                    let res = math.evaluate(current.replace('÷', '/').replace('×', '*').replace('−', '-'));
-                    current = res.toString(); screenDiv.innerText = current;
-                } catch { screenDiv.innerText = "Error"; setTimeout(cls, 1000); }
-            }
-        }
-
-        function goToCalc() {
-            document.getElementById('secret-os').style.display = 'none';
-            document.getElementById('calc-ui').style.display = 'flex';
-            document.getElementById('viewer').style.display = 'none';
-            cls();
-        }
-
-        function render() {
+        function openSecretMode() {
+            document.getElementById('calc-ui').style.display = 'none';
+            document.getElementById('secret-os').style.display = 'flex';
             const list = document.getElementById('game-list');
             list.innerHTML = "";
             database.forEach(j => {
                 list.innerHTML += `
                     <div class="card" onclick="openGame('${j.name}','${j.url}')">
                         <div class="img-container">
-                            <img class="img-blur" src="${j.thumb}" onerror="this.src='https://i.ibb.co/C0k7X1L/image-0.png'">
-                            <img class="img-main" src="${j.thumb}" onerror="this.src='https://i.ibb.co/C0k7X1L/image-0.png'">
+                            <img class="img-blur" src="${j.thumb}">
+                            <img class="img-main" src="${j.thumb}">
                         </div>
-                        <h3>${j.name}</h3>
+                        <h4>${j.name}</h4>
                     </div>`;
             });
         }
 
         function openGame(name, url) {
-            document.getElementById('game-title').innerText = name;
+            document.getElementById('v-title').innerText = name;
             document.getElementById('iframe').src = url;
             document.getElementById('viewer').style.display = 'flex';
         }
-
         function closeGame() {
             document.getElementById('viewer').style.display = 'none';
             document.getElementById('iframe').src = "";
         }
+        document.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'k') location.reload(); });
     </script>
 </body>
 </html>
